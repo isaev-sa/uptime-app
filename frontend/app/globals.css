@@ -106,3 +106,17 @@ form input:focus { outline: none; border-color: #73b88b; box-shadow: 0 0 0 3px #
 .avatar-editor .hint { margin: 7px 0 0; }
 .avatar-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .avatar-editor:focus-within .avatar-upload { outline: 2px solid #296a46; outline-offset: 3px; }
+.monitor-actions { margin-top: 28px; }
+.add-monitor { width: auto; padding: 0 24px; }
+.monitor-form { max-width: 520px; margin-top: 24px; padding: 28px; border: 1px solid #e7ede7; border-radius: 14px; background: #fff; }
+.monitor-form h2 { margin: 0 0 24px; font-size: 19px; }
+.interval-fields { display: flex; gap: 12px; }
+.interval-fields input { flex: 1; min-width: 0; }
+.interval-fields select { height: 54px; padding: 0 14px; border: 1px solid #e0e7e1; border-radius: 8px; background: #fff; color: #24322a; font: inherit; }
+.monitor-list { display: grid; gap: 12px; margin-top: 32px; }
+.saved-monitor { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px; border: 1px solid #e7ede7; border-radius: 12px; background: #fff; }
+.saved-monitor strong { overflow-wrap: anywhere; }
+.saved-monitor p { margin: 8px 0 0; color: #829087; font-size: 14px; }
+.saved-monitor > span { color: #71807a; font-size: 13px; }
+.monitor-notice { margin-top: 20px; max-width: 520px; }
+.monitor-notice button { margin-left: 10px; border: 0; background: none; color: inherit; text-decoration: underline; }

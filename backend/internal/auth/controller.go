@@ -25,6 +25,8 @@ type credentials struct {
 }
 
 func (a *Controller) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /monitors", a.monitors)
+	mux.HandleFunc("POST /monitors", a.monitors)
 	mux.HandleFunc("GET /profile", a.profile)
 	mux.HandleFunc("POST /profile/avatar", a.uploadAvatar)
 	mux.HandleFunc("POST /files", a.uploadFile)

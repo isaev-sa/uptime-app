@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import Monitors from './monitors';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
 let pendingRefresh;
@@ -275,9 +276,9 @@ export default function Home() {
           </> : <>
             <div className="eyebrow"><span /> ВАШЕ ПРОСТРАНСТВО</div>
             <h1>Добро пожаловать<span className="accent">.</span></h1>
-            <p className="dashboard-description">Здесь будет обзор состояния ваших сервисов.</p>
+            <p className="dashboard-description">Ваши точки мониторинга сайтов.</p>
             {error && <div className="notice" role="alert">{error}</div>}
-            <div className="dashboard-empty"><div className="dashboard-empty-icon">◈</div><h2>Всё начинается здесь</h2><p>Когда появятся ваши сервисы, вы увидите их состояние на этой странице.</p></div>
+            <Monitors apiUrl={API_URL} token={session.access_token} />
           </>}
         </section>
       </main>

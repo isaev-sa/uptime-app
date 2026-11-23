@@ -99,6 +99,40 @@ func TestAuthenticationHTTPWithPostgres(t *testing.T) {
 	if response.Email != "test@example.com" {
 		t.Fatalf("email: %q", response.Email)
 	}
+	monitorCall := func(method, body, token string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest(method, "/monitors", strings.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+token)
+		if method == http.MethodPost {
+			req.Header.Set("Content-Type", "application/json")
+		}
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, req)
+		return w
+	}
+	if got := monitorCall(http.MethodGet, "", "invalid").Code; got != http.StatusUnauthorized {
+		t.Fatalf("monitor auth: %d", got)
+	}
+	if got := monitorCall(http.MethodPost, `{"url":"https://example.com","interval_seconds":0}`, response.Access).Code; got != http.StatusBadRequest {
+		t.Fatalf("invalid interval: %d", got)
+	}
+	created := monitorCall(http.MethodPost, `{"url":"https://example.com/path","interval_seconds":300}`, response.Access)
+	if created.Code != http.StatusCreated {
+		t.Fatalf("create monitor: %d %s", created.Code, created.Body)
+	}
+	listed := monitorCall(http.MethodGet, "", response.Access)
+	if listed.Code != http.StatusOK || !strings.Contains(listed.Body.String(), "https://example.com/path") || !strings.Contains(listed.Body.String(), `"interval_seconds":300`) {
+		t.Fatalf("list monitors: %d %s", listed.Code, listed.Body)
+	}
+	other := call("/auth/register", `{"name":"Other","email":"other@example.com","password":"password123"}`, nil)
+	var otherResponse struct {
+		Access string `json:"access_token"`
+	}
+	if err := json.Unmarshal(other.Body.Bytes(), &otherResponse); err != nil || other.Code != http.StatusCreated {
+		t.Fatalf("other user: %d %s", other.Code, other.Body)
+	}
+	if got := monitorCall(http.MethodGet, "", otherResponse.Access); got.Code != http.StatusOK || strings.TrimSpace(got.Body.String()) != "[]" {
+		t.Fatalf("monitor isolation: %d %s", got.Code, got.Body)
+	}
 	profileCall := func(method, body, token string) *httptest.ResponseRecorder {
 		req := httptest.NewRequest(method, "/profile", strings.NewReader(body))
 		req.Header.Set("Authorization", "Bearer "+token)
