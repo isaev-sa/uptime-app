@@ -14,10 +14,13 @@ Run the relevant project's checks for each change. Add tests near the code they 
 - Называйте ветки `feat/<название-фичи>` для новой функциональности и `fix/<название-исправления>` для исправлений. Название пишите транслитом, разделяя слова дефисами, например `feat/lichniy-kabinet` или `fix/oshibka-vhoda`.
 - После завершения задачи создавайте Pull Request и вливайте изменения в основную ветку через него.
 
-## Commit & Pull Request Guidelines
+## Pull Request
 
-Git history was unavailable when this guide was written, so no established commit convention could be verified. Use concise, imperative commit subjects that describe the change. Pull requests should explain the purpose and behavior, list verification performed, link relevant issues, and include screenshots for visible UI changes.
-
+- Создавайте PR из рабочей ветки в `main`, если пользователь не указал другую целевую ветку. Перед созданием проверьте состояние Git, целевую ветку и весь состав изменений относительно неё; не включайте посторонние файлы.
+- Заголовок PR оформляйте по Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:` или `chore:`), описывая итог всех изменений ветки, а не только последний коммит.
+- Подготовьте описание для ревьюера: цель и поведение изменений, основные изменения в компонентах и API, выполненные проверки и их результат, пропущенные проверки с причиной, связанные задачи и скриншоты для видимых изменений, если они доступны. Не указывайте проверки как выполненные без подтверждения.
+- Проверьте авторизацию GitHub и наличие существующего PR для той же пары веток. Опубликуйте рабочую ветку, затем создайте PR или обновите существующий, сохранив переносы строк описания. Укажите пользователю ссылку на PR и сообщите о препятствиях, если публикация или создание невозможны.
+- Не вливайте PR, если пользователь просит только создать его. В других случаях следуйте правилам GitHub Flow и учитывайте доступность проверок и защиту ветки.
 
 ## Коммиты
 - Формат: Conventional Commits (feat, fix, refactor, test, docs, chore)
