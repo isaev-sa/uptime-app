@@ -38,13 +38,16 @@ func (a *Controller) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/refresh", a.refresh)
 	mux.HandleFunc("POST /auth/refresh/logout", a.logout)
 }
-func (a *Controller) profile(w http.ResponseWriter, r *http.Request) {
+func (a *Controller) authenticate(r *http.Request) (string, error) {
 	parts := strings.Fields(r.Header.Get("Authorization"))
 	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-		respondError(w, ErrCredentials)
-		return
+		return "", ErrCredentials
 	}
-	id, err := a.Service.VerifyAccess(parts[1])
+	return a.Service.VerifyAccess(parts[1])
+}
+
+func (a *Controller) profile(w http.ResponseWriter, r *http.Request) {
+	id, err := a.authenticate(r)
 	if err != nil {
 		respondError(w, err)
 		return

@@ -130,8 +130,47 @@ func TestAuthenticationHTTPWithPostgres(t *testing.T) {
 	if err := json.Unmarshal(other.Body.Bytes(), &otherResponse); err != nil || other.Code != http.StatusCreated {
 		t.Fatalf("other user: %d %s", other.Code, other.Body)
 	}
-	if got := monitorCall(http.MethodGet, "", otherResponse.Access); got.Code != http.StatusOK || strings.TrimSpace(got.Body.String()) != "[]" {
+	if got := monitorCall(http.MethodGet, "", otherResponse.Access); got.Code != http.StatusOK || strings.TrimSpace(got.Body.String()) != `{"items":[],"has_more":false}` {
 		t.Fatalf("monitor isolation: %d %s", got.Code, got.Body)
+	}
+	otherID, err := service.VerifyAccess(otherResponse.Access)
+	if err != nil {
+		t.Fatal(err)
+	}
+	seed := make([]monitor, maxMonitors-1)
+	for i := range seed {
+		seed[i] = monitor{ID: uuid.NewString(), UserID: otherID, URL: "https://example.com", IntervalSeconds: 60}
+	}
+	if err := db.CreateInBatches(seed, 100).Error; err != nil {
+		t.Fatal(err)
+	}
+	if got := monitorCall(http.MethodPost, `{"url":"https://example.com","interval_seconds":60}`, otherResponse.Access); got.Code != http.StatusCreated {
+		t.Fatalf("create at limit: %d %s", got.Code, got.Body)
+	}
+	if got := monitorCall(http.MethodPost, `{"url":"https://example.com","interval_seconds":60}`, otherResponse.Access); got.Code != http.StatusConflict {
+		t.Fatalf("create over limit: %d %s", got.Code, got.Body)
+	}
+	first := monitorCall(http.MethodGet, "", otherResponse.Access)
+	var page monitorPage
+	if err := json.Unmarshal(first.Body.Bytes(), &page); err != nil || len(page.Items) != monitorPageSize || !page.HasMore {
+		t.Fatalf("first page: %d %s", first.Code, first.Body)
+	}
+	last := page.Items[len(page.Items)-1]
+	query := url.Values{"before": {last.CreatedAt.Format(time.RFC3339Nano)}, "before_id": {last.ID}}
+	req := httptest.NewRequest(http.MethodGet, "/monitors?"+query.Encode(), nil)
+	req.Header.Set("Authorization", "Bearer "+otherResponse.Access)
+	next := httptest.NewRecorder()
+	handler.ServeHTTP(next, req)
+	var nextPage monitorPage
+	if err := json.Unmarshal(next.Body.Bytes(), &nextPage); err != nil || len(nextPage.Items) != monitorPageSize || !nextPage.HasMore {
+		t.Fatalf("second page: %d %s", next.Code, next.Body)
+	}
+	for _, item := range nextPage.Items {
+		for _, previous := range page.Items {
+			if item.ID == previous.ID {
+				t.Fatalf("duplicate monitor across pages: %s", item.ID)
+			}
+		}
 	}
 	profileCall := func(method, body, token string) *httptest.ResponseRecorder {
 		req := httptest.NewRequest(method, "/profile", strings.NewReader(body))

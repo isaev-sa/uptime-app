@@ -11,6 +11,8 @@ func TestValidMonitor(t *testing.T) {
 		{"https://example.com/path?q=1", 5, true}, {"http://example.com", 420, true},
 		{"example.com", 5, false}, {"ftp://example.com", 5, false}, {"http://", 5, false},
 		{"https://user:pass@example.com", 5, false}, {"https://example.com/#fragment", 5, false},
+		{"http://example.com:1", 5, true}, {"http://example.com:65535", 5, true},
+		{"http://example.com:0", 5, false}, {"http://example.com:65536", 5, false}, {"http://example.com:99999", 5, false},
 		{"https://example.com", 0, false}, {"https://example.com", -1, false},
 	} {
 		if got := validMonitor(tc.url, tc.seconds); got != tc.valid {
