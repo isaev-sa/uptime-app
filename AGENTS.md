@@ -2,29 +2,15 @@
 
 ## Project Structure
 
-The repository contains two projects: `frontend/` and `backend/`. See the `AGENTS.md` in each directory for project-specific commands and conventions.
+The repository contains two projects: `frontend/` and `backend/`.
 
-## Testing
+## When starting a new task use GitHub Flow
+Details in file: docs/rules/github-flow.md
 
-Run the relevant project's checks for each change. Add tests near the code they cover and document new test commands when introducing a test framework.
 
-## GitHub Flow
+## When commiting
+Details in file: docs/rules/commit.md
 
-- Перед началом каждой задачи создавайте отдельную ветку от основной ветки.
-- Называйте ветки `feat/<название-фичи>` для новой функциональности и `fix/<название-исправления>` для исправлений. Название пишите транслитом, разделяя слова дефисами, например `feat/lichniy-kabinet` или `fix/oshibka-vhoda`.
-- После завершения задачи создавайте Pull Request и вливайте изменения в основную ветку через него.
 
-## Pull Request
-
-- Создавайте PR из рабочей ветки в `main`, если пользователь не указал другую целевую ветку. Перед созданием проверьте состояние Git, целевую ветку и весь состав изменений относительно неё; не включайте посторонние файлы.
-- Заголовок PR оформляйте по Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:` или `chore:`), описывая итог всех изменений ветки, а не только последний коммит.
-- Подготовьте описание для ревьюера: цель и поведение изменений, основные изменения в компонентах и API, выполненные проверки и их результат, пропущенные проверки с причиной, связанные задачи и скриншоты для видимых изменений, если они доступны. Не указывайте проверки как выполненные без подтверждения.
-- Проверьте авторизацию GitHub и наличие существующего PR для той же пары веток. Опубликуйте рабочую ветку, затем создайте PR или обновите существующий, сохранив переносы строк описания. Укажите пользователю ссылку на PR и сообщите о препятствиях, если публикация или создание невозможны.
-- Не вливайте PR, если пользователь просит только создать его. В других случаях следуйте правилам GitHub Flow и учитывайте доступность проверок и защиту ветки.
-
-## Коммиты
-- Формат: Conventional Commits (feat, fix, refactor, test, docs, chore)
-- Заголовок до 72 символов, в повелительном наклонении
-- Без эмодзи, без "significantly improved" и прочей воды
-- Тело - только если нужно объяснить "почему" а не "что"
-- Один логический шаг - один коммит
+## When creating Pull Request
+Details in file: docs/rules/pr.md
