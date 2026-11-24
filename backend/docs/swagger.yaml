@@ -372,6 +372,81 @@ paths:
       summary: Create a monitor
       tags:
       - monitors
+  /monitors/{id}:
+    delete:
+      parameters:
+      - description: Monitor UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid monitor ID
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "404":
+          description: Monitor not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete a monitor
+      tags:
+      - monitors
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Monitor UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: HTTP or HTTPS URL and interval in seconds
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.monitorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.monitor'
+        "400":
+          description: Invalid monitor or ID
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "404":
+          description: Monitor not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update a monitor
+      tags:
+      - monitors
   /profile:
     get:
       produces:

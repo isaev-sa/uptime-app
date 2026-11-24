@@ -120,3 +120,14 @@ form input:focus { outline: none; border-color: #73b88b; box-shadow: 0 0 0 3px #
 .saved-monitor > span { color: #71807a; font-size: 13px; }
 .monitor-notice { margin-top: 20px; max-width: 520px; }
 .monitor-notice button { margin-left: 10px; border: 0; background: none; color: inherit; text-decoration: underline; }
+
+.saved-monitor-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.saved-monitor-actions button, .delete-dialog-actions button { border: 1px solid #d7e2d9; border-radius: 8px; background: #fff; color: #315f3c; padding: 9px 12px; cursor: pointer; }
+.saved-monitor-actions button:disabled, .delete-dialog-actions button:disabled { opacity: .5; cursor: default; }
+.delete-dialog { width: min(440px, calc(100% - 32px)); border: 0; border-radius: 14px; padding: 28px; box-shadow: 0 24px 70px #152c1d40; }
+.delete-dialog::backdrop { background: #14291c80; }
+.delete-dialog h2 { margin: 0 0 16px; }
+.delete-dialog p { line-height: 1.5; overflow-wrap: anywhere; }
+.delete-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.delete-dialog-actions .delete-button { background: #b93636; border-color: #b93636; color: #fff; }
+@media (max-width: 540px) { .saved-monitor { align-items: flex-start; flex-direction: column; } }

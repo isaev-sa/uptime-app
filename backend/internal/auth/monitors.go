@@ -150,3 +150,59 @@ func (a *Controller) monitors(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(item)
 }
+
+func (a *Controller) monitorByID(w http.ResponseWriter, r *http.Request) {
+	userID, err := a.authenticate(r)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	id := r.PathValue("id")
+	if _, err := uuid.Parse(id); err != nil {
+		http.Error(w, "invalid monitor id", http.StatusBadRequest)
+		return
+	}
+	if r.Method == http.MethodDelete {
+		result := a.Service.DB.WithContext(r.Context()).Where("id = ? AND user_id = ?", id, userID).Delete(&monitor{})
+		if result.Error != nil {
+			respondError(w, result.Error)
+			return
+		}
+		if result.RowsAffected == 0 {
+			http.Error(w, "monitor not found", http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	var input monitorRequest
+	r.Body = http.MaxBytesReader(w, r.Body, 4096)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if decoder.Decode(&input) != nil || decoder.Decode(&struct{}{}) != io.EOF || !validMonitor(input.URL, input.IntervalSeconds) {
+		http.Error(w, "invalid monitor", http.StatusBadRequest)
+		return
+	}
+	var item monitor
+	err = a.Service.DB.WithContext(r.Context()).Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&monitor{}).Where("id = ? AND user_id = ?", id, userID).Updates(map[string]interface{}{"url": input.URL, "interval_seconds": input.IntervalSeconds})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		return tx.Where("id = ? AND user_id = ?", id, userID).First(&item).Error
+	})
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "monitor not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(item)
+}
