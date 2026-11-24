@@ -5,7 +5,8 @@ import (
 	"net/http"
 )
 
-// Middleware applies the HTTP policies shared by all modules.
+// Middleware returns a handler that enforces the allowed origin and request
+// content types, answers preflight requests, and delegates other requests to next.
 func Middleware(next http.Handler, allowedOrigin string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Origin")

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+/** Render and manage the signed-in user’s monitor list. */
 export default function Monitors({ apiUrl, token }) {
   const [items, setItems] = useState(null);
   const [open, setOpen] = useState(false);

@@ -31,10 +31,15 @@ type RefreshSession struct {
 	CreatedAt time.Time
 }
 
+// Open connects to PostgreSQL using dsn and returns the GORM database handle
+// or a connection error.
 func Open(dsn string) (*gorm.DB, error) {
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 }
 
+// Migrate applies pending embedded SQL migrations in filename order in one
+// transaction. It returns filesystem or database errors; ctx controls the
+// transaction and its queries. Concurrent migrations are serialized.
 func Migrate(ctx context.Context, db *gorm.DB) error {
 	entries, err := migrations.ReadDir("migrations")
 	if err != nil {

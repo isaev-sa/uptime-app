@@ -65,6 +65,8 @@ func (s *Service) issue(userID, email, name, avatarURL string) (Tokens, storage.
 	hash := sha256.Sum256([]byte(refresh))
 	return Tokens{Access: access, Refresh: refresh, AccessExpiresAt: expires, RefreshExpiresAt: refreshExpires, Email: email, Name: name, AvatarURL: avatarURL}, storage.RefreshSession{ID: uuid.NewString(), UserID: userID, TokenHash: hash[:], ExpiresAt: refreshExpires}, nil
 }
+// VerifyAccess validates an access token and returns its user ID. It returns
+// ErrCredentials for invalid, expired, or unsupported tokens.
 func (s *Service) VerifyAccess(raw string) (string, error) {
 	claims := &jwt.RegisteredClaims{}
 	token, err := jwt.ParseWithClaims(raw, claims, func(t *jwt.Token) (any, error) { return s.Secret, nil }, jwt.WithValidMethods([]string{"HS256"}), jwt.WithExpirationRequired())
@@ -81,6 +83,8 @@ func validateName(name string) (string, error) {
 	return name, nil
 }
 
+// Profile returns the user with the given ID, or ErrCredentials if absent.
+// Database errors are returned; ctx controls the database query.
 func (s *Service) Profile(ctx context.Context, id string) (storage.User, error) {
 	var user storage.User
 	err := s.DB.WithContext(ctx).First(&user, "id = ?", id).Error
@@ -90,6 +94,9 @@ func (s *Service) Profile(ctx context.Context, id string) (storage.User, error) 
 	return user, err
 }
 
+// UpdateProfile updates the user name and returns the updated user. It returns
+// ErrInvalid for an invalid name, ErrCredentials if the user is absent, or a
+// database error. ctx controls both database operations.
 func (s *Service) UpdateProfile(ctx context.Context, id, name string) (storage.User, error) {
 	name, err := validateName(name)
 	if err != nil {
@@ -105,6 +112,10 @@ func (s *Service) UpdateProfile(ctx context.Context, id, name string) (storage.U
 	return s.Profile(ctx, id)
 }
 
+// Register creates a user and refresh session and returns their tokens. It
+// returns ErrInvalid for invalid input, ErrDuplicate for an existing email,
+// or an error from token generation or storage. ctx controls the transaction;
+// password hashing and token generation do not observe cancellation.
 func (s *Service) Register(ctx context.Context, name, email, password string) (Tokens, error) {
 	name, err := validateName(name)
 	if err != nil {
@@ -134,6 +145,10 @@ func (s *Service) Register(ctx context.Context, name, email, password string) (T
 	}
 	return tokens, err
 }
+// Login verifies credentials, creates a refresh session, and returns tokens.
+// It returns ErrCredentials for invalid credentials or an error from token
+// generation or storage. ctx controls database operations, not password
+// verification or token generation.
 func (s *Service) Login(ctx context.Context, email, password string) (Tokens, error) {
 	email, err := normalize(email, password)
 	if err != nil {
@@ -159,6 +174,9 @@ func (s *Service) Login(ctx context.Context, email, password string) (Tokens, er
 	}
 	return tokens, nil
 }
+// Refresh exchanges a refresh token for new tokens and invalidates the old
+// session. It returns ErrRefresh for a malformed, expired, or unknown token,
+// or an error from token generation or storage. ctx controls the transaction.
 func (s *Service) Refresh(ctx context.Context, raw string) (Tokens, error) {
 	if len(raw) != 43 {
 		return Tokens{}, ErrRefresh
@@ -167,6 +185,7 @@ func (s *Service) Refresh(ctx context.Context, raw string) (Tokens, error) {
 	var tokens Tokens
 	err := s.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var old storage.RefreshSession
+		// Serialize exchanges so a refresh token cannot create multiple sessions.
 		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("token_hash = ? AND expires_at > ?", hash[:], time.Now().UTC()).First(&old).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrRefresh
@@ -194,7 +213,8 @@ func (s *Service) Refresh(ctx context.Context, raw string) (Tokens, error) {
 	return tokens, nil
 }
 
-// Logout revokes the current refresh session. Missing or invalid tokens are already logged out.
+// Logout revokes the refresh session; malformed or unknown tokens are treated
+// as already logged out. It returns database errors, and ctx controls the delete.
 func (s *Service) Logout(ctx context.Context, raw string) error {
 	if len(raw) != 43 {
 		return nil

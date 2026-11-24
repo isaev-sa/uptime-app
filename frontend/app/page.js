@@ -69,6 +69,7 @@ function MonitorGraphic() {
   );
 }
 
+/** Render authentication, the dashboard, or the profile for the current session. */
 export default function Home() {
   const isProfile = usePathname() === '/profile';
   const [profile, setProfile] = useState(null);
@@ -116,6 +117,7 @@ export default function Home() {
   useEffect(() => {
     if (!session) return undefined;
     const remaining = Date.parse(session.expires_at) - Date.now();
+    // Refresh before expiry while leaving short-lived tokens time to be used.
     const delay = retry ? 30000 : Math.max(1000, remaining - Math.min(60000, remaining / 2));
     const timer = setTimeout(async () => {
       try {

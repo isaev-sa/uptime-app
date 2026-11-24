@@ -15,6 +15,8 @@ type Config struct {
 	CookieSecure                                                            bool
 }
 
+// Load reads configuration from the environment and returns an error for
+// missing or invalid required values and invalid optional values.
 func Load() (Config, error) {
 	c := Config{UploadDir: value("UPLOAD_DIR", "uploads/files"), AvatarDir: value("AVATAR_DIR", "uploads/avatars"), DatabaseURL: os.Getenv("DATABASE_URL"), JWTSecret: os.Getenv("JWT_SECRET"), ListenAddr: value("LISTEN_ADDR", ":8080"), AllowedOrigin: value("ALLOWED_ORIGIN", "http://localhost:3000"), AccessTTL: 15 * time.Minute, RefreshTTL: 30 * 24 * time.Hour}
 	if c.DatabaseURL == "" || len(c.JWTSecret) < 32 {

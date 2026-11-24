@@ -24,6 +24,8 @@ type credentials struct {
 	Password string `json:"password"`
 }
 
+// RegisterRoutes registers the authentication, profile, upload, and monitor
+// endpoints on mux. It panics if a route conflicts with an existing registration.
 func (a *Controller) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /monitors", a.monitors)
 	mux.HandleFunc("POST /monitors", a.monitors)

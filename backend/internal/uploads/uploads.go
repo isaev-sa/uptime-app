@@ -14,7 +14,10 @@ import (
 var ErrInvalid = errors.New("invalid multipart request")
 var ErrTooLarge = errors.New("file too large")
 
-// ReadFile accepts exactly one multipart file and bounds both its contents and request overhead.
+// ReadFile returns the contents of exactly one multipart file in field, bounded
+// by limit bytes plus request overhead. It returns ErrInvalid for malformed
+// multipart input and ErrTooLarge for oversized files or errors reading a part.
+// Body reads use r.Body; cancellation behavior depends on the body implementation.
 func ReadFile(w http.ResponseWriter, r *http.Request, field string, limit int64) ([]byte, error) {
 	r.Body = http.MaxBytesReader(w, r.Body, limit+(64<<10))
 	reader, err := r.MultipartReader()
@@ -35,7 +38,9 @@ func ReadFile(w http.ResponseWriter, r *http.Request, field string, limit int64)
 	return data, nil
 }
 
-// Save assigns a random name and never uses a client-supplied path.
+// Save writes data in dir under a random name with ext and returns that name.
+// The random name avoids using a client-supplied path. It creates dir if needed
+// and returns filesystem errors; partial files are removed on a best-effort basis.
 func Save(dir, ext string, data []byte) (string, error) {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", err
