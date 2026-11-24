@@ -59,6 +59,15 @@ func run() error {
 	}
 	return err
 }
+
+// @title Uptime API
+// @version 1.0
+// @description API for authentication, profiles, uploads and monitors.
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter Bearer followed by the access token.
 func main() {
 	if err := run(); err != nil {
 		log.Fatal(err)

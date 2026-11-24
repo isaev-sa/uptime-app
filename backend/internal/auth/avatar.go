@@ -18,6 +18,19 @@ import (
 
 const maxAvatarSize = 5 << 20
 
+// @Summary Upload a profile avatar
+// @Description JPEG or PNG up to 5 MiB and 4096 by 4096 pixels.
+// @Tags profile
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param avatar formData file true "Avatar image"
+// @Success 200 {object} avatarResponse
+// @Failure 400 {string} string "Invalid image or multipart request"
+// @Failure 401 {string} string "Invalid credentials"
+// @Failure 413 {string} string "File too large"
+// @Failure 500 {string} string "Internal server error"
+// @Router /profile/avatar [post]
 func (a *Controller) uploadAvatar(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Fields(r.Header.Get("Authorization"))
 	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
@@ -71,6 +84,13 @@ func (a *Controller) uploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}{avatarURL})
 }
 
+// @Summary Download an avatar
+// @Tags profile
+// @Produce image/png,image/jpeg
+// @Param name path string true "Avatar filename"
+// @Success 200 {file} file
+// @Failure 404 {string} string "Avatar not found"
+// @Router /avatars/{name} [get]
 func (a *Controller) serveAvatar(w http.ResponseWriter, r *http.Request) {
 	name := r.PathValue("name")
 	ext := filepath.Ext(name)

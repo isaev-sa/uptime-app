@@ -30,6 +30,22 @@ PostgreSQL сохраняет данные в томе `postgres_data`. При �
 
 ## API
 
+Контракт OpenAPI 2.0 (Swagger) находится в `docs/swagger.json` и `docs/swagger.yaml`. После изменения маршрутов или аннотаций обновите оба файла из каталога `backend/`:
+
+```sh
+go tool swag init -g cmd/server/main.go --parseInternal --output docs --outputTypes json,yaml
+```
+
+Генератор закреплён как инструмент Go-модуля; для запуска требуется Go 1.24 или новее. В Swagger для защищённых запросов укажите заголовок `Authorization: Bearer <access_token>`.
+
+Чтобы обновить HTML-документацию ReDoc после генерации контракта, выполните из `backend/` (требуются Node.js и npm):
+
+```sh
+npx --yes @redocly/cli@1.34.5 build-docs docs/swagger.json --output docs/redoc.html
+```
+
+Откройте `docs/redoc.html` в браузере. Для загрузки ReDoc и шрифтов требуется подключение к интернету.
+
 Общая загрузка: `POST /files` с заголовком `Authorization: Bearer <access_token>` и multipart-полем `file`. Принимается любой тип файла размером до 20 МиБ; ответ HTTP 201 содержит `url`. По этому URL файл доступен без авторизации как скачивание, поэтому не загружайте туда конфиденциальные данные. Имя на диске генерируется сервером. Например:
 
 ```sh

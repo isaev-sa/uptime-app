@@ -27,14 +27,14 @@ type credentials struct {
 // RegisterRoutes registers the authentication, profile, upload, and monitor
 // endpoints on mux. It panics if a route conflicts with an existing registration.
 func (a *Controller) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /monitors", a.monitors)
-	mux.HandleFunc("POST /monitors", a.monitors)
-	mux.HandleFunc("GET /profile", a.profile)
+	mux.HandleFunc("GET /monitors", a.listMonitors)
+	mux.HandleFunc("POST /monitors", a.createMonitor)
+	mux.HandleFunc("GET /profile", a.getProfile)
 	mux.HandleFunc("POST /profile/avatar", a.uploadAvatar)
 	mux.HandleFunc("POST /files", a.uploadFile)
 	mux.HandleFunc("GET /files/{name}", a.serveFile)
 	mux.HandleFunc("GET /avatars/{name}", a.serveAvatar)
-	mux.HandleFunc("PATCH /profile", a.profile)
+	mux.HandleFunc("PATCH /profile", a.updateProfile)
 	mux.HandleFunc("POST /auth/register", a.register)
 	mux.HandleFunc("POST /auth/login", a.login)
 	mux.HandleFunc("POST /auth/refresh", a.refresh)
@@ -82,6 +82,14 @@ func (a *Controller) profile(w http.ResponseWriter, r *http.Request) {
 		AvatarURL string `json:"avatar_url"`
 	}{user.Name, user.Email, user.AvatarURL})
 }
+
+// @Summary Revoke the refresh session and clear its cookie
+// @Tags auth
+// @Param Cookie header string false "refresh_token cookie"
+// @Success 204 "Session revoked"
+// @Header 204 {string} Set-Cookie "Cleared refresh token"
+// @Failure 500 {string} string "Internal server error"
+// @Router /auth/refresh/logout [post]
 func (a *Controller) logout(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie("refresh_token"); err == nil {
 		if err := a.Service.Logout(r.Context(), cookie.Value); err != nil {
@@ -106,6 +114,18 @@ func parseCredentials(w http.ResponseWriter, r *http.Request) (credentials, erro
 	}
 	return c, nil
 }
+
+// @Summary Register and start a session
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body registerRequest true "Registration credentials"
+// @Success 201 {object} tokenResponse
+// @Header 201 {string} Set-Cookie "Refresh token (HttpOnly)"
+// @Failure 400 {string} string "Invalid request"
+// @Failure 409 {string} string "Email already registered"
+// @Failure 500 {string} string "Internal server error"
+// @Router /auth/register [post]
 func (a *Controller) register(w http.ResponseWriter, r *http.Request) {
 	c, err := parseCredentials(w, r)
 	if err != nil {
@@ -119,6 +139,18 @@ func (a *Controller) register(w http.ResponseWriter, r *http.Request) {
 	}
 	a.respond(w, t, http.StatusCreated)
 }
+
+// @Summary Log in
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body loginRequest true "Login credentials"
+// @Success 200 {object} tokenResponse
+// @Header 200 {string} Set-Cookie "Refresh token (HttpOnly)"
+// @Failure 400 {string} string "Invalid request"
+// @Failure 401 {string} string "Invalid credentials"
+// @Failure 500 {string} string "Internal server error"
+// @Router /auth/login [post]
 func (a *Controller) login(w http.ResponseWriter, r *http.Request) {
 	c, err := parseCredentials(w, r)
 	if err != nil {
@@ -132,6 +164,16 @@ func (a *Controller) login(w http.ResponseWriter, r *http.Request) {
 	}
 	a.respond(w, t, http.StatusOK)
 }
+
+// @Summary Rotate the refresh token and issue an access token
+// @Tags auth
+// @Produce json
+// @Param Cookie header string true "refresh_token cookie"
+// @Success 200 {object} tokenResponse
+// @Header 200 {string} Set-Cookie "Rotated refresh token (HttpOnly)"
+// @Failure 401 {string} string "Invalid refresh token"
+// @Failure 500 {string} string "Internal server error"
+// @Router /auth/refresh [post]
 func (a *Controller) refresh(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("refresh_token")
 	if err != nil {

@@ -1,0 +1,476 @@
+basePath: /
+definitions:
+  auth.avatarResponse:
+    properties:
+      avatar_url:
+        type: string
+    type: object
+  auth.fileResponse:
+    properties:
+      url:
+        type: string
+    type: object
+  auth.loginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.monitor:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      interval_seconds:
+        type: integer
+      url:
+        type: string
+    type: object
+  auth.monitorPage:
+    properties:
+      has_more:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/auth.monitor'
+        type: array
+    type: object
+  auth.monitorRequest:
+    properties:
+      interval_seconds:
+        type: integer
+      url:
+        type: string
+    type: object
+  auth.profileRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  auth.profileResponse:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  auth.registerRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.tokenResponse:
+    properties:
+      access_token:
+        type: string
+      avatar_url:
+        type: string
+      email:
+        type: string
+      expires_at:
+        type: string
+      name:
+        type: string
+      token_type:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API for authentication, profiles, uploads and monitors.
+  title: Uptime API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Set-Cookie:
+              description: Refresh token (HttpOnly)
+              type: string
+          schema:
+            $ref: '#/definitions/auth.tokenResponse'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Log in
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      parameters:
+      - description: refresh_token cookie
+        in: header
+        name: Cookie
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Set-Cookie:
+              description: Rotated refresh token (HttpOnly)
+              type: string
+          schema:
+            $ref: '#/definitions/auth.tokenResponse'
+        "401":
+          description: Invalid refresh token
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Rotate the refresh token and issue an access token
+      tags:
+      - auth
+  /auth/refresh/logout:
+    post:
+      parameters:
+      - description: refresh_token cookie
+        in: header
+        name: Cookie
+        type: string
+      responses:
+        "204":
+          description: Session revoked
+          headers:
+            Set-Cookie:
+              description: Cleared refresh token
+              type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Revoke the refresh session and clear its cookie
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Registration credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          headers:
+            Set-Cookie:
+              description: Refresh token (HttpOnly)
+              type: string
+          schema:
+            $ref: '#/definitions/auth.tokenResponse'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "409":
+          description: Email already registered
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Register and start a session
+      tags:
+      - auth
+  /avatars/{name}:
+    get:
+      parameters:
+      - description: Avatar filename
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - image/png
+      - image/jpeg
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Avatar not found
+          schema:
+            type: string
+      summary: Download an avatar
+      tags:
+      - profile
+  /files:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Files up to 20 MiB are publicly downloadable via the returned URL.
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.fileResponse'
+        "400":
+          description: Invalid multipart request
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "413":
+          description: File too large
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Upload a file
+      tags:
+      - files
+  /files/{name}:
+    get:
+      parameters:
+      - description: File UUID
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: File not found
+          schema:
+            type: string
+      summary: Download a file
+      tags:
+      - files
+  /monitors:
+    get:
+      description: Pass before and before_id together, using the last item from the
+        previous page.
+      parameters:
+      - description: Cursor timestamp (RFC3339)
+        in: query
+        name: before
+        type: string
+      - description: Cursor monitor UUID
+        in: query
+        name: before_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.monitorPage'
+        "400":
+          description: Invalid cursor
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List monitors
+      tags:
+      - monitors
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: HTTP or HTTPS URL and interval in seconds
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.monitorRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.monitor'
+        "400":
+          description: Invalid monitor
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "409":
+          description: Monitor limit reached
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a monitor
+      tags:
+      - monitors
+  /profile:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.profileResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get the current profile
+      tags:
+      - profile
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: New profile name
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.profileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.profileResponse'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update the current profile
+      tags:
+      - profile
+  /profile/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      description: JPEG or PNG up to 5 MiB and 4096 by 4096 pixels.
+      parameters:
+      - description: Avatar image
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.avatarResponse'
+        "400":
+          description: Invalid image or multipart request
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "413":
+          description: File too large
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Upload a profile avatar
+      tags:
+      - profile
+securityDefinitions:
+  BearerAuth:
+    description: Enter Bearer followed by the access token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
