@@ -91,3 +91,30 @@ func (a *Controller) getProfile(w http.ResponseWriter, r *http.Request) { a.prof
 // @Failure 500 {string} string "Internal server error"
 // @Router /profile [patch]
 func (a *Controller) updateProfile(w http.ResponseWriter, r *http.Request) { a.profile(w, r) }
+
+// @Summary Update a monitor
+// @Tags monitors
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Monitor UUID"
+// @Param body body monitorRequest true "HTTP or HTTPS URL and interval in seconds"
+// @Success 200 {object} monitor
+// @Failure 400 {string} string "Invalid monitor or ID"
+// @Failure 401 {string} string "Invalid credentials"
+// @Failure 404 {string} string "Monitor not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /monitors/{id} [patch]
+func (a *Controller) updateMonitor(w http.ResponseWriter, r *http.Request) { a.monitorByID(w, r) }
+
+// @Summary Delete a monitor
+// @Tags monitors
+// @Security BearerAuth
+// @Param id path string true "Monitor UUID"
+// @Success 204
+// @Failure 400 {string} string "Invalid monitor ID"
+// @Failure 401 {string} string "Invalid credentials"
+// @Failure 404 {string} string "Monitor not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /monitors/{id} [delete]
+func (a *Controller) deleteMonitor(w http.ResponseWriter, r *http.Request) { a.monitorByID(w, r) }

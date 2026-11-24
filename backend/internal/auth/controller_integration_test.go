@@ -133,6 +133,61 @@ func TestAuthenticationHTTPWithPostgres(t *testing.T) {
 	if got := monitorCall(http.MethodGet, "", otherResponse.Access); got.Code != http.StatusOK || strings.TrimSpace(got.Body.String()) != `{"items":[],"has_more":false}` {
 		t.Fatalf("monitor isolation: %d %s", got.Code, got.Body)
 	}
+
+	var createdMonitor monitor
+	if err := json.Unmarshal(created.Body.Bytes(), &createdMonitor); err != nil {
+		t.Fatal(err)
+	}
+	monitorByID := func(method, id, body, token string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest(method, "/monitors/"+id, strings.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+token)
+		if method == http.MethodPatch {
+			req.Header.Set("Content-Type", "application/json")
+		}
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, req)
+		return w
+	}
+	validUpdate := `{"url":"https://updated.example.com","interval_seconds":120}`
+	for _, method := range []string{http.MethodPatch, http.MethodDelete} {
+		if got := monitorByID(method, createdMonitor.ID, validUpdate, "invalid"); got.Code != http.StatusUnauthorized {
+			t.Fatalf("%s auth: %d", method, got.Code)
+		}
+		if got := monitorByID(method, "bad-id", validUpdate, response.Access); got.Code != http.StatusBadRequest {
+			t.Fatalf("%s invalid id: %d", method, got.Code)
+		}
+		if got := monitorByID(method, createdMonitor.ID, validUpdate, otherResponse.Access); got.Code != http.StatusNotFound {
+			t.Fatalf("%s other user: %d", method, got.Code)
+		}
+		if got := monitorByID(method, uuid.NewString(), validUpdate, response.Access); got.Code != http.StatusNotFound {
+			t.Fatalf("%s missing: %d", method, got.Code)
+		}
+	}
+	if got := monitorByID(http.MethodPatch, createdMonitor.ID, `{"url":"bad","interval_seconds":0}`, response.Access); got.Code != http.StatusBadRequest {
+		t.Fatalf("invalid update: %d", got.Code)
+	}
+	updatedSite := monitorByID(http.MethodPatch, createdMonitor.ID, validUpdate, response.Access)
+	var updatedMonitor monitor
+	if err := json.Unmarshal(updatedSite.Body.Bytes(), &updatedMonitor); err != nil || updatedSite.Code != http.StatusOK || updatedMonitor.ID != createdMonitor.ID || updatedMonitor.URL != "https://updated.example.com" || updatedMonitor.IntervalSeconds != 120 || !updatedMonitor.CreatedAt.Equal(createdMonitor.CreatedAt) {
+		t.Fatalf("update: %d %s", updatedSite.Code, updatedSite.Body)
+	}
+	if got := monitorCall(http.MethodGet, "", response.Access); !strings.Contains(got.Body.String(), "https://updated.example.com") {
+		t.Fatalf("updated list: %s", got.Body)
+	}
+	if got := monitorByID(http.MethodDelete, createdMonitor.ID, "", response.Access); got.Code != http.StatusNoContent {
+		t.Fatalf("delete: %d %s", got.Code, got.Body)
+	}
+	if got := monitorCall(http.MethodGet, "", response.Access); strings.Contains(got.Body.String(), createdMonitor.ID) {
+		t.Fatalf("deleted monitor still listed: %s", got.Body)
+	}
+	preflight := httptest.NewRequest(http.MethodOptions, "/monitors/"+createdMonitor.ID, nil)
+	preflight.Header.Set("Origin", "http://localhost:3000")
+	preflightResult := httptest.NewRecorder()
+	handler.ServeHTTP(preflightResult, preflight)
+	if !strings.Contains(preflightResult.Header().Get("Access-Control-Allow-Methods"), "DELETE") {
+		t.Fatal("DELETE missing from CORS methods")
+	}
+
 	otherID, err := service.VerifyAccess(otherResponse.Access)
 	if err != nil {
 		t.Fatal(err)
