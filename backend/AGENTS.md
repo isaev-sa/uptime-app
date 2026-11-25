@@ -12,6 +12,10 @@ Run these commands from `backend/`:
 - `go build ./...` builds all Go packages.
 - `go test ./...` runs all Go tests.
 
+## Development Database
+
+Use the `uptime_postgres` MCP server to inspect the development database. Discover its available tools in the current session, then use `list_schemas`, `list_objects`, or `get_object_details` to inspect the schema and `execute_sql` for read-only queries. For example, `SELECT COUNT(*) FROM public.users` counts users. Check the current schema before relying on table or column names. The MCP server uses restricted access; do not use it to modify data.
+
 ## API Documentation
 
 Add swaggo annotations for every API route. When adding, changing, or removing a route or its request or response contract, update the corresponding annotations and regenerate both OpenAPI files from `backend/`:
