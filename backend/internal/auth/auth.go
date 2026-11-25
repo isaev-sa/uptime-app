@@ -65,6 +65,7 @@ func (s *Service) issue(userID, email, name, avatarURL string) (Tokens, storage.
 	hash := sha256.Sum256([]byte(refresh))
 	return Tokens{Access: access, Refresh: refresh, AccessExpiresAt: expires, RefreshExpiresAt: refreshExpires, Email: email, Name: name, AvatarURL: avatarURL}, storage.RefreshSession{ID: uuid.NewString(), UserID: userID, TokenHash: hash[:], ExpiresAt: refreshExpires}, nil
 }
+
 // VerifyAccess validates an access token and returns its user ID. It returns
 // ErrCredentials for invalid, expired, or unsupported tokens.
 func (s *Service) VerifyAccess(raw string) (string, error) {
@@ -145,6 +146,7 @@ func (s *Service) Register(ctx context.Context, name, email, password string) (T
 	}
 	return tokens, err
 }
+
 // Login verifies credentials, creates a refresh session, and returns tokens.
 // It returns ErrCredentials for invalid credentials or an error from token
 // generation or storage. ctx controls database operations, not password
@@ -174,6 +176,7 @@ func (s *Service) Login(ctx context.Context, email, password string) (Tokens, er
 	}
 	return tokens, nil
 }
+
 // Refresh exchanges a refresh token for new tokens and invalidates the old
 // session. It returns ErrRefresh for a malformed, expired, or unknown token,
 // or an error from token generation or storage. ctx controls the transaction.
