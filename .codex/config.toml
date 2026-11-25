@@ -1,0 +1,6 @@
+[mcp_servers.uptime_postgres]
+command = "docker"
+args = ["run", "--rm", "-i", "--network", "container:uptime-app-db-1", "-e", "DATABASE_URI", "crystaldba/postgres-mcp:latest", "--access-mode=restricted"]
+
+[mcp_servers.uptime_postgres.env]
+DATABASE_URI = "postgresql://uptime:uptime_local@127.0.0.1:5432/uptime"
