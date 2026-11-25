@@ -17,6 +17,17 @@
         ]
       }
     ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/notify-windows.sh\"",
+            "statusMessage": "Sending Windows notification"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "^apply_patch$",
