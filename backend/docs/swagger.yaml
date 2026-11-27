@@ -10,6 +10,30 @@ definitions:
       url:
         type: string
     type: object
+  auth.historyBucket:
+    properties:
+      failures:
+        type: integer
+      monitor_id:
+        type: string
+      start:
+        type: string
+      successes:
+        type: integer
+    type: object
+  auth.historyPage:
+    properties:
+      buckets:
+        items:
+          $ref: '#/definitions/auth.historyBucket'
+        type: array
+      count:
+        type: integer
+      start:
+        type: string
+      step_seconds:
+        type: integer
+    type: object
   auth.loginRequest:
     properties:
       email:
@@ -445,6 +469,49 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a monitor
+      tags:
+      - monitors
+  /monitors/history:
+    get:
+      description: Returns UTC buckets with observations. Missing buckets have no
+        data.
+      parameters:
+      - description: Comma-separated monitor UUIDs (1 to 50)
+        in: query
+        name: ids
+        required: true
+        type: string
+      - description: History period
+        enum:
+        - 1h
+        - 24h
+        - 30d
+        in: query
+        name: period
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.historyPage'
+        "400":
+          description: Invalid period or IDs
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get availability history for the current user's monitors
       tags:
       - monitors
   /profile:

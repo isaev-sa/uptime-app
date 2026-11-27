@@ -148,6 +148,26 @@ func TestAuthenticationHTTPWithPostgres(t *testing.T) {
 		handler.ServeHTTP(w, req)
 		return w
 	}
+	readHistory := func(token string) historyPage {
+		t.Helper()
+		w := monitorByID(http.MethodGet, "history?period=1h&ids="+createdMonitor.ID, "", token)
+		var history historyPage
+		if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &history) != nil {
+			t.Fatalf("history: %d %s", w.Code, w.Body)
+		}
+		return history
+	}
+	if err := db.Exec(`INSERT INTO monitor_minutes VALUES (?,date_trunc('minute',now()) - interval '1 minute',11,1,?)`, createdMonitor.ID, uuid.NewString()).Error; err != nil {
+		t.Fatal(err)
+	}
+	monitorByID(http.MethodPatch, createdMonitor.ID, `{"url":"https://example.com/path","interval_seconds":30}`, response.Access)
+	history := readHistory(response.Access)
+	if len(history.Buckets) != 1 || history.Buckets[0].Successes != 11 || history.Buckets[0].Failures != 1 || history.Count != 60 {
+		t.Fatalf("owner history: %+v", history)
+	}
+	if len(readHistory(otherResponse.Access).Buckets) != 0 {
+		t.Fatal("history leaked to another user")
+	}
 	validUpdate := `{"url":"https://updated.example.com","interval_seconds":120}`
 	for _, method := range []string{http.MethodPatch, http.MethodDelete} {
 		if got := monitorByID(method, createdMonitor.ID, validUpdate, "invalid"); got.Code != http.StatusUnauthorized {
@@ -167,6 +187,9 @@ func TestAuthenticationHTTPWithPostgres(t *testing.T) {
 		t.Fatalf("invalid update: %d", got.Code)
 	}
 	updatedSite := monitorByID(http.MethodPatch, createdMonitor.ID, validUpdate, response.Access)
+	if len(readHistory(response.Access).Buckets) != 0 {
+		t.Fatal("old URL history survived edit")
+	}
 	var updatedMonitor monitor
 	if err := json.Unmarshal(updatedSite.Body.Bytes(), &updatedMonitor); err != nil || updatedSite.Code != http.StatusOK || updatedMonitor.ID != createdMonitor.ID || updatedMonitor.URL != "https://updated.example.com" || updatedMonitor.IntervalSeconds != 120 || !updatedMonitor.CreatedAt.Equal(createdMonitor.CreatedAt) {
 		t.Fatalf("update: %d %s", updatedSite.Code, updatedSite.Body)

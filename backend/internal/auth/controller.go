@@ -28,6 +28,7 @@ type credentials struct {
 // endpoints on mux. It panics if a route conflicts with an existing registration.
 func (a *Controller) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /monitors", a.listMonitors)
+	mux.HandleFunc("GET /monitors/history", a.history)
 	mux.HandleFunc("POST /monitors", a.createMonitor)
 	mux.HandleFunc("PATCH /monitors/{id}", a.updateMonitor)
 	mux.HandleFunc("DELETE /monitors/{id}", a.deleteMonitor)

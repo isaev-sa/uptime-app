@@ -448,6 +448,70 @@
                 }
             }
         },
+        "/monitors/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns UTC buckets with observations. Missing buckets have no data.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "monitors"
+                ],
+                "summary": "Get availability history for the current user's monitors",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Comma-separated monitor UUIDs (1 to 50)",
+                        "name": "ids",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "1h",
+                            "24h",
+                            "30d"
+                        ],
+                        "type": "string",
+                        "description": "History period",
+                        "name": "period",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.historyPage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid period or IDs",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/monitors/{id}": {
             "delete": {
                 "security": [
@@ -732,6 +796,43 @@
             "properties": {
                 "url": {
                     "type": "string"
+                }
+            }
+        },
+        "auth.historyBucket": {
+            "type": "object",
+            "properties": {
+                "failures": {
+                    "type": "integer"
+                },
+                "monitor_id": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "string"
+                },
+                "successes": {
+                    "type": "integer"
+                }
+            }
+        },
+        "auth.historyPage": {
+            "type": "object",
+            "properties": {
+                "buckets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/auth.historyBucket"
+                    }
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "start": {
+                    "type": "string"
+                },
+                "step_seconds": {
+                    "type": "integer"
                 }
             }
         },
