@@ -115,6 +115,10 @@ form input:focus { outline: none; border-color: #73b88b; box-shadow: 0 0 0 3px #
 .interval-fields select { height: 54px; padding: 0 14px; border: 1px solid #e0e7e1; border-radius: 8px; background: #fff; color: #24322a; font: inherit; }
 .monitor-list { display: grid; gap: 12px; margin-top: 32px; }
 .saved-monitor { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px; border: 1px solid #e7ede7; border-radius: 12px; background: #fff; }
+.saved-monitor-site { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.saved-monitor-site > div { min-width: 0; }
+.site-icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 10px; background: #eef5ef; color: #548460; font-size: 22px; }
+.site-icon img { width: 24px; height: 24px; object-fit: contain; }
 .saved-monitor strong { overflow-wrap: anywhere; }
 .saved-monitor p { margin: 8px 0 0; color: #829087; font-size: 14px; }
 .saved-monitor > span { color: #71807a; font-size: 13px; }
@@ -131,3 +135,18 @@ form input:focus { outline: none; border-color: #73b88b; box-shadow: 0 0 0 3px #
 .delete-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
 .delete-dialog-actions .delete-button { background: #b93636; border-color: #b93636; color: #fff; }
 @media (max-width: 540px) { .saved-monitor { align-items: flex-start; flex-direction: column; } }
+
+.history-period { display: flex; align-items: center; gap: 12px; margin-top: 24px; font-size: 14px; }
+.history-period select { padding: 7px 10px; border: 1px solid #d7e2d9; border-radius: 8px; background: white; font: inherit; }
+.history-period + .monitor-list { margin-top: 12px; }
+.saved-monitor { flex-wrap: wrap; }
+.saved-monitor-site { flex: 1; }
+.history-chart { flex-basis: 100%; width: 100%; min-width: 0; }
+.history-bars { display: flex; gap: 1px; height: 24px; border-radius: 4px; overflow: hidden; }
+.history-bars span { flex: 1; background: #dfe5e1; }
+.history-bars .selected { box-shadow: inset 0 0 0 2px #203d2f; }
+.history-chart p { color: #52645a; font-size: 13px; }
+@media (max-width: 540px) {
+  .saved-monitor { flex-wrap: nowrap; }
+  .saved-monitor-site, .history-chart { flex-basis: auto; }
+}

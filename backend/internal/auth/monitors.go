@@ -67,7 +67,7 @@ func (s *Service) listMonitors(ctx context.Context, userID string, before time.T
 }
 
 func (s *Service) createMonitor(ctx context.Context, userID, rawURL string, interval int) (monitor, error) {
-	item := monitor{ID: uuid.NewString(), UserID: userID, URL: rawURL, IntervalSeconds: interval}
+	item := monitor{ID: uuid.NewString(), UserID: userID, URL: rawURL, IntervalSeconds: interval, CreatedAt: time.Now().UTC().Truncate(time.Microsecond)}
 	if !validMonitor(rawURL, interval) {
 		return monitor{}, ErrInvalid
 	}
