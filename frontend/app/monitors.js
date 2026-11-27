@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { HistoryChart, useMonitorHistory } from './monitor-history';
+
 function SiteIcon({ url }) {
   const [sources, setSources] = useState(() => [new URL('/favicon.png', url).href, new URL('/favicon.ico', url).href]);
   const [index, setIndex] = useState(0);
@@ -33,6 +35,8 @@ function SiteIcon({ url }) {
 /** Render and manage the signed-in user’s monitor list. */
 export default function Monitors({ apiUrl, token }) {
   const [items, setItems] = useState(null);
+  const [period, setPeriod] = useState('1h');
+  const history = useMonitorHistory(items, period, apiUrl, token);
   const [editing, setEditing] = useState(null);
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState('');
@@ -140,7 +144,14 @@ export default function Monitors({ apiUrl, token }) {
       <button className="primary-button" type="submit" disabled={busy || loadingMore}>{busy ? 'Сохраняем…' : editing ? 'Сохранить' : 'Создать'}</button>
     </form>}
     {error && <div className="notice monitor-notice" role="alert">{error}{items === null && <button type="button" onClick={() => setRetry((value) => value + 1)}>Повторить</button>}</div>}
-    {items === null ? !error && <p>Загружаем сайты…</p> : items.length === 0 && !hasMore ? <div className="dashboard-empty"><div className="dashboard-empty-icon">◈</div><h2>Всё начинается здесь</h2><p>Добавьте сайт, чтобы создать первую точку мониторинга.</p></div> : <div className="monitor-list">{items.map((item) => <div className="saved-monitor" key={item.id}><div className="saved-monitor-site"><SiteIcon key={item.url} url={item.url} /><div><strong>{item.url}</strong><p>Интервал: {item.interval_seconds % 3600 === 0 ? `${item.interval_seconds / 3600} ч` : item.interval_seconds % 60 === 0 ? `${item.interval_seconds / 60} мин` : `${item.interval_seconds} сек`}</p></div></div><div className="saved-monitor-actions"><button type="button" disabled={busy || loadingMore} onClick={() => startForm(item)}>Редактировать</button><button type="button" disabled={busy || loadingMore} onClick={() => { setDeleteError(''); setDeleting(item); }}>Удалить</button></div></div>)}</div>}
+    {!!items?.length && <label className="history-period">Период графиков
+      <select value={period} onChange={(event) => setPeriod(event.target.value)}>
+        <option value="1h">1 час</option><option value="24h">24 часа</option><option value="30d">30 дней</option>
+      </select>
+    </label>}
+    {items === null ? !error && <p>Загружаем сайты…</p> : items.length === 0 && !hasMore ? <div className="dashboard-empty"><div className="dashboard-empty-icon">◈</div><h2>Всё начинается здесь</h2><p>Добавьте сайт, чтобы создать первую точку мониторинга.</p></div> : <div className="monitor-list">{items.map((item) => <div className="saved-monitor" key={item.id}><div className="saved-monitor-site"><SiteIcon key={item.url} url={item.url} /><div><strong>{item.url}</strong><p>Интервал: {item.interval_seconds % 3600 === 0 ? `${item.interval_seconds / 3600} ч` : item.interval_seconds % 60 === 0 ? `${item.interval_seconds / 60} мин` : `${item.interval_seconds} сек`}</p></div></div><div className="saved-monitor-actions"><button type="button" disabled={busy || loadingMore} onClick={() => startForm(item)}>Редактировать</button><button type="button" disabled={busy || loadingMore} onClick={() => { setDeleteError(''); setDeleting(item); }}>Удалить</button></div>
+      <HistoryChart chart={history?.charts?.[item.id]} error={history?.error} />
+    </div>)}</div>}
     {hasMore && <button className="primary-button add-monitor" type="button" onClick={loadMore} disabled={loadingMore || busy || !cursorRef.current}>{loadingMore ? 'Загружаем…' : 'Показать ещё'}</button>}
     {deleting && <dialog ref={dialogRef} className="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description" onCancel={(event) => { event.preventDefault(); if (!busy) setDeleting(null); }}><h2 id="delete-title">Удалить сайт?</h2><p id="delete-description">Сайт <strong>{deleting.url}</strong> будет удалён без возможности восстановления.</p>{deleteError && <div className="notice" role="alert">{deleteError}</div>}<div className="delete-dialog-actions"><button type="button" disabled={busy} onClick={() => setDeleting(null)} autoFocus>Отмена</button><button type="button" className="delete-button" disabled={busy} onClick={remove}>{busy ? 'Удаляем…' : 'Удалить'}</button></div></dialog>}
   </>;
