@@ -10,6 +10,9 @@ Details in file: docs/rules/github-flow.md
 ## When creating Pull Request
 Details in file: docs/rules/pr.md
 
+## Работа с браузером
+Для работы с браузером используй MCP.
+
 ## Комментарии в коде
 - Комментируй ПОЧЕМУ, а не ЧТО - "что" видно из кода
 - Очевидное не комментируй, лучше использую правильные наименования

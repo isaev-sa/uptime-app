@@ -1,0 +1,73 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: МОНИТОРИНГ БЕЗ ЛИШНЕГО
+        - heading "Давайте начнём." [level=1] [ref=e88]
+        - paragraph [ref=e73]: Создайте аккаунт и держите всё под контролем.
+        - generic "Авторизация" [ref=e74]:
+          - button "Войти" [ref=e75] [cursor=pointer]
+          - button "Создать аккаунт" [active] [ref=e76] [cursor=pointer]
+        - generic [ref=e77]:
+          - generic [ref=e89]: Имя пользователя
+          - textbox "Имя пользователя" [ref=e90]:
+            - /placeholder: Как к вам обращаться
+          - generic [ref=e78]: Email
+          - textbox "Email" [ref=e79]:
+            - /placeholder: you@example.com
+          - generic [ref=e80]: Пароль
+          - generic [ref=e81]:
+            - textbox "Пароль" [ref=e82]:
+              - /placeholder: Не менее 8 символов
+            - button "Показать пароль" [ref=e83] [cursor=pointer]: Показать
+          - paragraph [ref=e91]: От 8 до 72 байт. Используйте надёжный пароль.
+          - button "Создать аккаунт" [ref=e92] [cursor=pointer]
+        - paragraph [ref=e85]:
+          - text: Уже есть аккаунт?
+          - button "Войти" [ref=e93] [cursor=pointer]
+      - generic [ref=e11]:
+        - generic [ref=e12]: © 2026 uptime
+        - generic [ref=e13]: Создано для спокойной работы
+    - complementary [ref=e14]:
+      - generic [ref=e15]:
+        - link "Uptime, на главную" [ref=e16] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e19]: uptime.
+        - generic [ref=e20]:
+          - generic [ref=e21]: ВСЁ ПОД КОНТРОЛЕМ
+          - heading [level=2] [ref=e23]:
+            - text: Спокойствие начинается с
+            - emphasis [ref=e24]: uptime.
+          - paragraph [ref=e25]: Место, где состояние ваших сервисов всегда перед глазами.
+          - generic [aria-hidden] [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e30]:
+                - strong [ref=e31]: Ваши сервисы
+                - generic [ref=e32]: Обзор состояния
+              - generic [ref=e33]: ···
+            - generic [ref=e35]:
+              - generic [ref=e36]: ✳
+              - generic [ref=e37]:
+                - strong [ref=e38]: Основной сайт
+                - generic [ref=e39]: Проверка доступности
+              - generic [ref=e40]: Работает
+            - generic [ref=e42]:
+              - generic [ref=e43]: ◇
+              - generic [ref=e44]:
+                - strong [ref=e45]: API сервер
+                - generic [ref=e46]: Проверка доступности
+              - generic [ref=e47]: Работает
+            - generic [ref=e49]:
+              - generic [ref=e50]: ▧
+              - generic [ref=e51]:
+                - strong [ref=e52]: База данных
+                - generic [ref=e53]: Проверка доступности
+              - generic [ref=e54]: Работает
+            - generic [ref=e56]:
+              - generic [ref=e57]: Все системы работают
+              - generic [ref=e59]: Обновлено только что
+        - generic [ref=e60]:
+          - generic [ref=e61]: Меньше неизвестности.Больше уверенности.
+          - generic [ref=e62]: ✳
+  - button "Open Next.js Dev Tools" [ref=e68] [cursor=pointer]
+  - alert [ref=e87]

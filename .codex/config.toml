@@ -1,6 +1,16 @@
 [mcp_servers.uptime_postgres]
 command = "docker"
 args = ["run", "--rm", "-i", "--network", "container:uptime-app-db-1", "-e", "DATABASE_URI", "crystaldba/postgres-mcp:latest", "--access-mode=restricted"]
+env_vars = ["DATABASE_URI"]
 
-[mcp_servers.uptime_postgres.env]
-DATABASE_URI = "postgresql://uptime:uptime_local@127.0.0.1:5432/uptime"
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest",
+        "--executable-path",
+        "/home/sergey/.cache/ms-playwright/chromium-1255/chrome-linux64/chrome",
+        "--no-sandbox",
+        "--isolated"]
+
+[mcp_servers.playwright.env]
+DISPLAY = ":0"
+WAYLAND_DISPLAY = "wayland-0"
