@@ -30,6 +30,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  worker:
+    build: ./backend
+    entrypoint: ["/worker"]
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://uptime:${POSTGRES_PASSWORD:-uptime_local}@db:5432/uptime?sslmode=disable
+    depends_on:
+      db:
+        condition: service_healthy
 volumes:
   postgres_data:
   avatar_data:
